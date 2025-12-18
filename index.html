@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Scribble Party</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;800&display=swap');
+        
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: #f8fafc;
+            touch-action: none;
+        }
+
+        .canvas-container {
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.05);
+            background: white;
+            border-radius: 1.5rem;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #drawing-canvas {
+            cursor: crosshair;
+            touch-action: none;
+            width: 100%;
+            height: 100%;
+        }
+
+        .message {
+            animation: slideIn 0.2s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .scrollbar-hide::-webkit-scrollbar { display: none; }
+    </style>
+</head>
+<body class="min-h-screen p-4 flex flex-col items-center">
+
+    <!-- Auth / Join Overlay -->
+    <div id="join-overlay" class="fixed inset-0 bg-indigo-600/90 z-[100] flex items-center justify-center p-6 transition-all">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
+            <h1 class="text-4xl font-800 text-indigo-600 mb-2">SCRIBBLE<span class="text-pink-500">PARTY</span></h1>
+            <p class="text-slate-500 mb-8">Multiplayer drawing fun!</p>
+            
+            <div class="space-y-4">
+                <input type="text" id="player-name" placeholder="Your Name" class="w-full p-4 bg-slate-100 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-400 font-semibold">
+                <input type="text" id="room-id" placeholder="Room ID (e.g. FUN-123)" class="w-full p-4 bg-slate-100 rounded-2xl border-none outline-none focus:ring-2 focus:ring-indigo-400 font-semibold uppercase">
+                <button id="join-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-2xl font-bold text-lg shadow-lg transition-all active:scale-95">
+                    Enter Party
+                </button>
+            </div>
+            <p id="auth-status" class="mt-4 text-xs text-slate-400">Connecting to server...</p>
+        </div>
+    </div>
+
+    <!-- Main Game UI -->
+    <div id="game-ui" class="w-full max-w-6xl hidden">
+        <header class="flex flex-wrap justify-between items-center mb-6 gap-4">
+            <div>
+                <h1 class="text-3xl font-800 text-indigo-600 tracking-tight">SCRIBBLE<span class="text-pink-500">PARTY</span></h1>
+                <div class="flex items-center gap-3">
+                    <p id="room-display" class="text-slate-400 text-sm font-bold uppercase tracking-widest"></p>
+                    <button id="end-room-btn" class="hidden bg-red-500 hover:bg-red-600 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-colors">
+                        End Party
+                    </button>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4 bg-white p-3 rounded-2xl shadow-sm border border-slate-200">
+                <div class="text-center px-4">
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Time Left</p>
+                    <p id="timer-display" class="text-2xl font-bold text-slate-800">60s</p>
+                </div>
+                <div class="h-10 w-[1px] bg-slate-200"></div>
+                <div id="target-container" class="px-4 hidden">
+                    <p class="text-xs font-semibold text-slate-400 uppercase">Your Word</p>
+                    <p id="target-word" class="text-2xl font-bold text-pink-500">CAT</p>
+                </div>
+            </div>
+        </header>
+
+        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
+            <!-- Player List -->
+            <div class="lg:col-span-2 space-y-4">
+                <div class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200">
+                    <h3 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-4">Players</h3>
+                    <div id="player-list" class="space-y-3 max-h-[400px] overflow-y-auto scrollbar-hide"></div>
+                </div>
+                <div id="drawer-tools" class="bg-white p-4 rounded-3xl shadow-sm border border-slate-200 hidden">
+                    <h3 class="font-bold text-slate-400 text-xs uppercase tracking-widest mb-4">Tools</h3>
+                    <div class="grid grid-cols-2 gap-2 mb-4">
+                        <button onclick="setColor('#000000')" class="w-full aspect-square rounded-xl bg-black border-2 border-white"></button>
+                        <button onclick="setColor('#ef4444')" class="w-full aspect-square rounded-xl bg-red-500 border-2 border-white"></button>
+                        <button onclick="setColor('#3b82f6')" class="w-full aspect-square rounded-xl bg-blue-500 border-2 border-white"></button>
+                        <button onclick="setColor('#22c55e')" class="w-full aspect-square rounded-xl bg-green-500 border-2 border-white"></button>
+                    </div>
+                    <button id="clear-btn" class="w-full py-2 bg-pink-50 text-pink-600 rounded-xl font-bold text-sm">Clear All</button>
+                </div>
+            </div>
+
+            <!-- Drawing Area -->
+            <div class="lg:col-span-7 flex flex-col gap-4">
+                <div class="canvas-container aspect-video border border-slate-200">
+                    <canvas id="drawing-canvas"></canvas>
+                </div>
+            </div>
+
+            <!-- Guess Area -->
+            <div class="lg:col-span-3 flex flex-col">
+                <div class="bg-white rounded-3xl shadow-sm border border-slate-200 flex flex-col h-[500px]">
+                    <div class="p-4 border-b border-slate-100">
+                        <h3 class="font-bold text-slate-700">Guesses</h3>
+                    </div>
+                    <div id="chat-messages" class="flex-1 overflow-y-auto p-4 space-y-2 scrollbar-hide"></div>
+                    <div class="p-4 bg-slate-50 rounded-b-3xl">
+                        <form id="chat-form" class="relative">
+                            <input type="text" id="chat-input" placeholder="Type your guess..." class="w-full p-3 pr-12 bg-white rounded-xl border border-slate-200 outline-none">
+                            <button type="submit" class="absolute right-2 top-1/2 -translate-y-1/2 text-indigo-500">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 19l9 2-9-18-9 18 9-2zm0 0v-8" />
+                                </svg>
+                            </button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, addDoc, getDoc, getDocs, writeBatch, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+
+        const firebaseConfig = {
+            apiKey: "AIzaSyA2UmERn03SCrmRq84G-CvWgO5EEtMSpxY",
+            authDomain: "scribble-3ba74.firebaseapp.com",
+            projectId: "scribble-3ba74",
+            storageBucket: "scribble-3ba74.firebasestorage.app",
+            messagingSenderId: "128392124494",
+            appId: "1:128392124494:web:e8f7644ef393689e7b8b1f",
+            measurementId: "G-GSRFW64W68"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const db = getFirestore(app);
+        const auth = getAuth(app);
+        
+        // Use v13 for logic update
+        const appId = 'scribble-party-v13'; 
+
+        const WORDS = ["CAT", "TREE", "HOUSE", "CAR", "SUN", "AIRPLANE", "APPLE", "SMILEY FACE", "MOUNTAIN", "BICYCLE", "FLOWER", "CAKE", "BOOK", "FISH", "UMBRELLA", "COFFEE MUG", "PHONE", "GUITAR", "STAR", "CLOUD", "BANANA", "GLASSES", "HEART", "PIZZA", "HAMBURGER", "SHIRT", "SPOON", "CHAIR", "TABLE", "KEY", "WATCH", "SCISSORS", "ENVELOPE", "PENCIL", "BOTTLE"];
+        
+        const canvas = document.getElementById('drawing-canvas');
+        const ctx = canvas.getContext('2d');
+        const playerListEl = document.getElementById('player-list');
+        const chatMessagesEl = document.getElementById('chat-messages');
+        const chatForm = document.getElementById('chat-form');
+        const chatInput = document.getElementById('chat-input');
+        const joinOverlay = document.getElementById('join-overlay');
+        const gameUI = document.getElementById('game-ui');
+        const timerDisplay = document.getElementById('timer-display');
+        const targetContainer = document.getElementById('target-container');
+        const targetWordText = document.getElementById('target-word');
+        const drawerTools = document.getElementById('drawer-tools');
+        const endRoomBtn = document.getElementById('end-room-btn');
+        
+        let currentUser = null;
+        let currentRoom = null;
+        let currentRole = 'guesser'; 
+        let currentWord = "";
+        let isDrawing = false;
+        let brushColor = '#000000';
+        let brushSize = 5;
+        let lastX = 0;
+        let lastY = 0;
+        let strokeBuffer = [];
+        let bufferTimer = null;
+        let myPlayerKey = null;
+        let hostTimerInterval = null;
+        let correctGuessers = []; 
+        let isFlushing = false;
+        let roundDrawingStarted = false; // Local tracking for immediate UI feedback
+
+        signInAnonymously(auth);
+
+        onAuthStateChanged(auth, (user) => {
+            currentUser = user;
+            if (user) document.getElementById('auth-status').textContent = "Ready!";
+        });
+
+        document.getElementById('join-btn').onclick = async () => {
+            if (!currentUser) return;
+            const name = document.getElementById('player-name').value.trim();
+            const room = document.getElementById('room-id').value.trim().toUpperCase();
+            if (!name || !room) return;
+
+            currentRoom = room;
+            joinOverlay.classList.add('hidden');
+            gameUI.classList.remove('hidden');
+            document.getElementById('room-display').textContent = `Room: ${room}`;
+
+            const uniqueSessionId = Date.now().toString(36) + Math.random().toString(36).substring(2);
+            myPlayerKey = `${currentUser.uid}_${uniqueSessionId}`;
+
+            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players_' + room, myPlayerKey), {
+                name, score: 0, id: myPlayerKey
+            });
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', room);
+            const roomSnap = await getDoc(roomRef);
+            
+            if (!roomSnap.exists()) {
+                await setDoc(roomRef, {
+                    hostUid: currentUser.uid, 
+                    drawerId: myPlayerKey,
+                    currentWord: WORDS[Math.floor(Math.random() * WORDS.length)],
+                    timer: 60,
+                    correctGuessers: [],
+                    drawingStarted: false // Initialize as false
+                });
+            }
+
+            listenToRoom(myPlayerKey);
+            resizeCanvas();
+        };
+
+        function listenToRoom(myKey) {
+            // Room Listener
+            onSnapshot(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom), (snap) => {
+                if (!snap.exists()) {
+                    alert('The host has ended the party!');
+                    location.reload();
+                    return;
+                }
+
+                const data = snap.data();
+                correctGuessers = data.correctGuessers || [];
+                roundDrawingStarted = data.drawingStarted || false;
+
+                // HOST LOGIC: Run the timer only if drawing has started
+                if (data.hostUid === currentUser.uid) {
+                    endRoomBtn.classList.remove('hidden');
+                    if (!hostTimerInterval) {
+                        hostTimerInterval = setInterval(async () => {
+                            const currentSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom));
+                            if (!currentSnap.exists()) {
+                                clearInterval(hostTimerInterval);
+                                return;
+                            }
+                            const currentData = currentSnap.data();
+                            
+                            // TIMER PAUSE CHECK
+                            if (!currentData.drawingStarted) return; 
+
+                            let newTime = (currentData.timer || 0) - 1;
+                            
+                            if (newTime <= 0) {
+                                startNewRound(currentData.drawerId);
+                            } else {
+                                await updateDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom), { timer: newTime });
+                            }
+                        }, 1000);
+                    }
+                }
+
+                if (currentWord !== data.currentWord) {
+                    currentWord = data.currentWord;
+                    ctx.clearRect(0, 0, canvas.width, canvas.height);
+                }
+                const isMeDrawing = data.drawerId === myKey;
+                currentRole = isMeDrawing ? 'drawer' : 'guesser';
+                
+                if (isMeDrawing) {
+                    targetContainer.classList.remove('hidden');
+                    targetWordText.textContent = currentWord;
+                    drawerTools.classList.remove('hidden');
+                } else {
+                    targetContainer.classList.add('hidden');
+                    drawerTools.classList.add('hidden');
+                }
+                timerDisplay.textContent = `${data.timer}s`;
+            });
+
+            // Player Listener
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom), (snap) => {
+                playerListEl.innerHTML = '';
+                snap.docs.forEach(doc => {
+                    const p = doc.data();
+                    const item = document.createElement('div');
+                    item.className = "flex justify-between items-center bg-slate-50 p-3 rounded-2xl";
+                    item.innerHTML = `
+                        <div class="flex items-center gap-2">
+                            ${p.id === (currentRole === 'drawer' ? myPlayerKey : null) ? '<span class="text-xs bg-indigo-100 text-indigo-700 px-1 rounded">Draw</span>' : ''}
+                            <span class="font-bold text-slate-700">${p.name}</span>
+                        </div>
+                        <span class="font-800 text-indigo-600">${p.score}</span>
+                    `;
+                    playerListEl.appendChild(item);
+                });
+            });
+
+            // Stroke Listener
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'strokes_' + currentRoom), (snap) => {
+                if (currentRole === 'guesser') {
+                    snap.docChanges().forEach(change => {
+                        if (change.type === "added") {
+                            const data = change.doc.data();
+                            if (data.type === 'clear') ctx.clearRect(0, 0, canvas.width, canvas.height);
+                            else if (data.points) {
+                                data.points.forEach(p => drawStroke(p.x1, p.y1, p.x2, p.y2, p.color, p.size));
+                            }
+                        } else if (change.type === "removed") {
+                            ctx.clearRect(0, 0, canvas.width, canvas.height);
+                        }
+                    });
+                }
+            });
+
+            // Chat Listener
+            onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), (snap) => {
+                const messages = snap.docs.map(d => d.data()).sort((a,b) => a.time - b.time);
+                chatMessagesEl.innerHTML = '';
+                messages.forEach(msg => {
+                    const isWinnerMsg = msg.type === 'correct';
+                    const isSystem = msg.type === 'system' || isWinnerMsg;
+                    const isMyWin = msg.winnerId === myKey;
+                    const haveIGuessed = correctGuessers.includes(myKey);
+                    
+                    const canSeeDetails = !isWinnerMsg || (currentRole === 'drawer' || isMyWin || haveIGuessed);
+                    
+                    const el = document.createElement('div');
+                    el.className = `message text-sm p-2 rounded-lg ${isSystem ? 'bg-indigo-50 text-indigo-600 font-bold' : 'bg-slate-100 text-slate-700'}`;
+                    
+                    if (isWinnerMsg) {
+                        el.textContent = canSeeDetails ? `BINGO! ${msg.sender} guessed it!` : `Someone guessed the word!`;
+                    } else {
+                        el.textContent = isSystem ? msg.text : `${msg.sender}: ${msg.text}`;
+                    }
+                    chatMessagesEl.appendChild(el);
+                });
+                chatMessagesEl.scrollTop = chatMessagesEl.scrollHeight;
+            });
+        }
+
+        async function startNewRound(currentDrawerId) {
+            // ROTATION LOGIC
+            const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom);
+            const playersSnap = await getDocs(playersCol);
+            const players = playersSnap.docs.map(d => d.data().id).sort();
+
+            let nextDrawerId = currentDrawerId;
+            if (players.length > 0) {
+                const currentIndex = players.indexOf(currentDrawerId);
+                const nextIndex = (currentIndex + 1) % players.length;
+                nextDrawerId = players[nextIndex];
+            }
+
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+            await updateDoc(roomRef, {
+                drawerId: nextDrawerId,
+                currentWord: WORDS[Math.floor(Math.random() * WORDS.length)],
+                timer: 60,
+                correctGuessers: [],
+                drawingStarted: false // Reset for new round
+            });
+
+            const batch = writeBatch(db);
+            const strokes = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'strokes_' + currentRoom));
+            strokes.forEach(d => batch.delete(d.ref));
+            const msgs = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom));
+            msgs.forEach(d => batch.delete(d.ref));
+            const msgRef = doc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom));
+            batch.set(msgRef, { type: 'system', text: "Time's up! New round started.", time: Date.now() });
+            await batch.commit();
+        }
+
+        endRoomBtn.onclick = async () => {
+            if (!confirm('Are you sure you want to end this party? This will kick all players.')) return;
+            const batch = writeBatch(db);
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+            batch.delete(roomRef);
+            const collectionsToDelete = ['players_', 'strokes_', 'messages_'];
+            for (const prefix of collectionsToDelete) {
+                const q = await getDocs(collection(db, 'artifacts', appId, 'public', 'data', prefix + currentRoom));
+                q.forEach((doc) => batch.delete(doc.ref));
+            }
+            await batch.commit();
+        };
+
+        function resizeCanvas() {
+            const container = canvas.parentElement;
+            canvas.width = container.clientWidth;
+            canvas.height = container.clientHeight;
+            ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+        }
+
+        function getCoords(e) {
+            const rect = canvas.getBoundingClientRect();
+            const x = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+            const y = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+            return [x / canvas.width, y / canvas.height];
+        }
+
+        async function flushStrokeBuffer() {
+            if (strokeBuffer.length === 0 || isFlushing) return; 
+            
+            isFlushing = true;
+            const pointsToPush = [...strokeBuffer];
+            strokeBuffer = []; 
+
+            try {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'strokes_' + currentRoom), { 
+                    points: pointsToPush, 
+                    time: Date.now() 
+                });
+            } catch (e) {
+                console.error("Error syncing strokes", e);
+            } finally {
+                isFlushing = false;
+            }
+        }
+
+        canvas.onmousedown = (e) => {
+            if (currentRole !== 'drawer') return;
+            isDrawing = true;
+            
+            // TIMER START TRIGGER
+            if (!roundDrawingStarted) {
+                roundDrawingStarted = true;
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+                updateDoc(roomRef, { drawingStarted: true }).catch(console.error);
+            }
+
+            [lastX, lastY] = getCoords(e);
+            if (!bufferTimer) bufferTimer = setInterval(flushStrokeBuffer, 50);
+        };
+
+        const MIN_DISTANCE = 0.005;
+
+        canvas.onmousemove = (e) => {
+            if (!isDrawing || currentRole !== 'drawer') return;
+            const [x, y] = getCoords(e);
+            
+            const dist = Math.sqrt(Math.pow(x - lastX, 2) + Math.pow(y - lastY, 2));
+            if (dist < MIN_DISTANCE) return; 
+
+            drawStroke(lastX, lastY, x, y, brushColor, brushSize);
+            strokeBuffer.push({ x1: lastX, y1: lastY, x2: x, y2: y, color: brushColor, size: brushSize });
+            [lastX, lastY] = [x, y];
+        };
+
+        window.onmouseup = () => {
+            isDrawing = false;
+            clearInterval(bufferTimer);
+            bufferTimer = null;
+            isFlushing = false; 
+            flushStrokeBuffer();
+        };
+
+        function drawStroke(x1, y1, x2, y2, color, size) {
+            ctx.beginPath();
+            ctx.strokeStyle = color; ctx.lineWidth = size;
+            ctx.moveTo(x1 * canvas.width, y1 * canvas.height);
+            ctx.lineTo(x2 * canvas.width, y2 * canvas.height);
+            ctx.stroke();
+        }
+
+        window.setColor = (c) => brushColor = c;
+        document.getElementById('clear-btn').onclick = async () => {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'strokes_' + currentRoom), { type: 'clear', time: Date.now() });
+        };
+
+        chatForm.onsubmit = async (e) => {
+            e.preventDefault();
+            const text = chatInput.value.trim();
+            if (!text || !myPlayerKey) return;
+            chatInput.value = '';
+            const playerName = document.getElementById('player-name').value;
+            const isCorrect = text.toUpperCase() === currentWord.toUpperCase();
+
+            if (isCorrect && currentRole === 'guesser' && !correctGuessers.includes(myPlayerKey)) {
+                const rank = correctGuessers.length; 
+                let points = 0;
+                if (rank === 0) points = 30;
+                else if (rank === 1) points = 20;
+                else if (rank === 2) points = 10;
+                
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+                await updateDoc(roomRef, {
+                    correctGuessers: arrayUnion(myPlayerKey)
+                });
+
+                if (points > 0) {
+                    const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, myPlayerKey);
+                    const pSnap = await getDoc(pRef);
+                    await updateDoc(pRef, { score: (pSnap.data().score || 0) + points });
+                }
+
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), {
+                    type: 'correct', winnerId: myPlayerKey, sender: playerName, time: Date.now()
+                });
+            } else {
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), { sender: playerName, text, time: Date.now() });
+            }
+        };
+
+        window.onresize = resizeCanvas;
+    </script>
+</body>
+</html>
