@@ -101,7 +101,13 @@
                         <button onclick="setColor('#3b82f6')" class="w-full aspect-square rounded-xl bg-blue-500 border-2 border-white"></button>
                         <button onclick="setColor('#22c55e')" class="w-full aspect-square rounded-xl bg-green-500 border-2 border-white"></button>
                     </div>
-                    <button id="clear-btn" class="w-full py-2 bg-pink-50 text-pink-600 rounded-xl font-bold text-sm">Clear All</button>
+                    <div class="space-y-2">
+                        <button id="clear-btn" class="w-full py-2 bg-pink-50 text-pink-600 rounded-xl font-bold text-sm hover:bg-pink-100 transition-colors">Clear Canvas</button>
+                        <div class="grid grid-cols-2 gap-2">
+                            <button id="change-word-btn" class="w-full py-2 bg-indigo-50 text-indigo-600 rounded-xl font-bold text-sm hover:bg-indigo-100 transition-colors">New Word</button>
+                            <button id="skip-round-btn" class="w-full py-2 bg-orange-50 text-orange-600 rounded-xl font-bold text-sm hover:bg-orange-100 transition-colors">End Round</button>
+                        </div>
+                    </div>
                 </div>
             </div>
 
@@ -136,25 +142,26 @@
 
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
-        import { getAuth, signInAnonymously, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
+        import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
         import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, addDoc, getDoc, getDocs, writeBatch, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
-        const firebaseConfig = {
-    apiKey: "AIzaSyC5TLdMQQSekJ1dg5RYAm0cH0B3iOlyHC8",
-    authDomain: "scribble-82ffd.firebaseapp.com",
-    projectId: "scribble-82ffd",
-    storageBucket: "scribble-82ffd.firebasestorage.app",
-    messagingSenderId: "233604180906",
-    appId: "1:233604180906:web:45bb101fc2d3dda01c19d3",
-    measurementId: "G-NF2WSSEBJJ"
-  };
+        // Environment adaptation for previewer
+        const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
+            apiKey: "AIzaSyC5TLdMQQSekJ1dg5RYAm0cH0B3iOlyHC8",
+            authDomain: "scribble-82ffd.firebaseapp.com",
+            projectId: "scribble-82ffd",
+            storageBucket: "scribble-82ffd.firebasestorage.app",
+            messagingSenderId: "233604180906",
+            appId: "1:233604180906:web:45bb101fc2d3dda01c19d3",
+            measurementId: "G-NF2WSSEBJJ"
+        };
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
         
-        // Use v13 for logic update
-        const appId = 'scribble-party-v13'; 
+        // Environment adaptation for previewer
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'scribble-party-v13'; 
 
         const WORDS = ["CAT","APPLICATION","HOMIOPATHY", "LEAF", "RIVER", "OCEAN", "BEACH", "DESERT", "FOREST", "HAT", "SHIRT", "PANTS", "SHOES", "SOCKS",  "ERASER", "NOTEBOOK", "BAG", "LAMP", "CLOCK", "JACKET", "UMBRELLA", "BACKPACK", "SCARF", "VOLCANO", "ISLAND", "TREE", "HOUSE", "CAR", "SUN","DOCTOR","TEAM MATE","DRONE","SIPPER","KETTLE", "AIRPLANE", "APPLE", "SMILEY FACE", "MOUNTAIN", "BICYCLE", "FLOWER", "CAKE", "BOOK", "FISH", "COFFEE MUG", "PHONE", "GUITAR", "STAR", "CLOUD", "BANANA", "GLASSES", "HEART", "PIZZA", "HAMBURGER","SPOON", "CHAIR", "TABLE", "KEY", "WATCH", "SCISSORS", "ENVELOPE", "PENCIL", "BOTTLE", "MICROSCOPE", "TELESCOPE", "BINOCULARS", "HOURGLASS", "COMPASS", "STOPWATCH", "THERMOMETER", "CALCULATOR", "SATELLITE", "ANTENNA", "ANCHOR", "LIFEBUOY", "SUBMARINE", "PERISCOPE", "TREASURE CHEST", "PIRATE SHIP", "LIGHTHOUSE", "WINDMILL", "WATER TOWER", "BRIDGE", "ROBOT", "ANDROID", "JOYSTICK", "GAME CONTROLLER", "VR HEADSET", "DRONE CAMERA", "SECURITY CAMERA", "TRAFFIC LIGHT", "CCTV CAMERA", "MICROPHONE", "BACKPACK ZIPPER", "BROKEN GLASS", "BANDAGE", "STETHOSCOPE", "FIRST AID KIT", "SYRINGE", "IV STAND", "HOSPITAL BED", "WHEELCHAIR", "CRUTCHES", "CACTUS", "BONSAI TREE", "MUSHROOM", "PINE CONE", "SEASHELL", "CORAL REEF", "JELLYFISH", "STARFISH", "OCTOPUS", "SEAHORSE", "RAINBOW", "TORNADO", "THUNDER CLOUD", "SNOWFLAKE", "ICICLE", "VOLCANIC ERUPTION", "METEOR", "CONSTELLATION", "FULL MOON", "SOLAR ECLIPSE", "CASTLE", "DRAWBRIDGE", "WATCHTOWER", "WIZARD HAT", "MAGIC WAND", "DRAGON EGG", "TREASURE MAP", "ANCIENT SCROLL", "GOLDEN KEY", "CRYSTAL BALL", "ASTRONAUT", "SPACESHIP", "SPACE STATION", "ALIEN", "UFO", "PARACHUTE", "HOT AIR BALLOON", "SKATEBOARD", "ROLLER COASTER", "FERRIS WHEEL", "MAILBOX", "POSTCARD", "PAPER AIRPLANE", "MEGAPHONE", "FLASHLIGHT", "FIRE EXTINGUISHER", "SMOKE ALARM", "PADLOCK", "KEYCHAIN", "TOOLBOX", "CAMERA TRIPOD", "PAINT BRUSH", "CANVAS", "EASEL", "SPRAY CAN", "SCULPTURE", "CLAY POT", "PUPPET", "MASK", "COSTUME", "FOUNTAIN", "STATUE", "CLOCK TOWER", "PARK BENCH", "BIRD FEEDER", "KITE", "WIND SOCK", "WEATHER VANE", "SIGNPOST", "ROAD BARRIER", "FIREPLACE", "CHIMNEY", "DOORBELL", "KEYPAD", "SECURITY ALARM", "WINDOW BLINDS", "CEILING FAN", "WALL CLOCK", "DOORMAT", "MAIL SLOT", "SHOPPING CART", "PRICE TAG", "RECEIPT", "BARCODE", "VENDING MACHINE", "CASH REGISTER", "ATM MACHINE", "ESCALATOR", "ELEVATOR", "TURNSTILE", "CONSTRUCTION HELMET", "TRAFFIC CONE", "JACKHAMMER", "BLUEPRINT", "TOOL BELT", "SAFETY VEST", "CRANE HOOK", "WRECKING BALL", "SCAFFOLDING", "CEMENT MIXER", "FISHING ROD", "TACKLE BOX", "LIFE JACKET", "SURFBOARD", "DIVING MASK", "SNORKEL", "FLIPPERS", "ANCHOR CHAIN", "SHIP WHEEL", "PORT HOLE", "FOLDING CHAIR", "PICNIC TABLE", "BEAN BAG", "ROCKING CHAIR", "BAR STOOL", "CLOTHES HANGER", "LAUNDRY BASKET", "IRONING BOARD", "WASHING MACHINE", "DRYER", "REFRIGERATOR", "FREEZER", "DISHWASHER", "MICROWAVE OVEN", "TOASTER", "BLENDER", "FOOD PROCESSOR", "PRESSURE COOKER", "RICE COOKER", "COFFEE MAKER", "DOOR HANDLE", "LIGHT SWITCH", "POWER SOCKET", "EXTENSION CORD", "CIRCUIT BREAKER", "FUSE BOX", "SOLAR PANEL", "BATTERY PACK", "POWER BANK", "CHARGING CABLE", "FIRE HYDRANT", "STREET LAMP", "ROAD SIGN", "SPEED BREAKER", "PEDESTRIAN CROSSING"];
         
@@ -189,7 +196,15 @@
         let isFlushing = false;
         let roundDrawingStarted = false; // Local tracking for immediate UI feedback
 
-        signInAnonymously(auth);
+        // Environment auth adaptation
+        const initAuth = async () => {
+            if (typeof __initial_auth_token !== 'undefined' && __initial_auth_token) {
+                await signInWithCustomToken(auth, __initial_auth_token);
+            } else {
+                await signInAnonymously(auth);
+            }
+        };
+        initAuth();
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
@@ -478,6 +493,26 @@
             ctx.clearRect(0, 0, canvas.width, canvas.height);
             await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'strokes_' + currentRoom), { type: 'clear', time: Date.now() });
         };
+
+        // --- NEW BUTTON HANDLERS ---
+        document.getElementById('change-word-btn').onclick = async () => {
+            if (currentRole !== 'drawer') return;
+            // Pick a new random word
+            const newWord = WORDS[Math.floor(Math.random() * WORDS.length)];
+            const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+            // Update the room; the existing onSnapshot listener will catch this change
+            // and automatically clear the canvas for everyone.
+            await updateDoc(roomRef, { currentWord: newWord });
+        };
+
+        document.getElementById('skip-round-btn').onclick = async () => {
+            if (currentRole !== 'drawer') return;
+            if (confirm("Are you sure you want to end this round early?")) {
+                // Pass current drawer ID to rotation logic to trigger the next person
+                await startNewRound(myPlayerKey);
+            }
+        };
+        // ---------------------------
 
         chatForm.onsubmit = async (e) => {
             e.preventDefault();
