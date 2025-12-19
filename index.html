@@ -150,7 +150,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-app.js";
         import { getAuth, signInAnonymously, onAuthStateChanged, signInWithCustomToken } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-auth.js";
-        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, addDoc, getDoc, getDocs, writeBatch, deleteDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
+        import { getFirestore, doc, setDoc, updateDoc, onSnapshot, collection, addDoc, getDoc, getDocs, writeBatch, deleteDoc, arrayUnion, increment } from "https://www.gstatic.com/firebasejs/11.6.1/firebase-firestore.js";
 
         // Environment adaptation for previewer
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
@@ -189,6 +189,7 @@
         let currentUser = null;
         let currentRoom = null;
         let currentRole = 'guesser'; 
+        let currentDrawerId = null; // Added to track the current drawer for scoring
         let currentWord = "";
         let isDrawing = false;
         let brushColor = '#000000';
@@ -264,6 +265,7 @@
                 }
 
                 const data = snap.data();
+                currentDrawerId = data.drawerId; // Update local tracker
                 correctGuessers = data.correctGuessers || [];
                 roundDrawingStarted = data.drawingStarted || false;
 
@@ -541,10 +543,16 @@
                     correctGuessers: arrayUnion(myPlayerKey)
                 });
 
+                // Award points to the guesser
                 if (points > 0) {
                     const pRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, myPlayerKey);
-                    const pSnap = await getDoc(pRef);
-                    await updateDoc(pRef, { score: (pSnap.data().score || 0) + points });
+                    await updateDoc(pRef, { score: increment(points) });
+                }
+
+                // Award 5 points to the drawer for a correct guess
+                if (currentDrawerId) {
+                    const drawerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, currentDrawerId);
+                    await updateDoc(drawerRef, { score: increment(5) });
                 }
 
                 await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), {
