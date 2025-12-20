@@ -39,6 +39,20 @@
         }
 
         .scrollbar-hide::-webkit-scrollbar { display: none; }
+
+        /* Kick Button Styles */
+        .kick-btn {
+            min-width: 50px;
+            font-weight: 600;
+        }
+        
+        .kick-btn:hover {
+            transform: scale(1.05);
+        }
+        
+        .kick-btn:active {
+            transform: scale(0.95);
+        }
     </style>
 </head>
 <body class="min-h-screen p-4 flex flex-col items-center">
@@ -170,8 +184,8 @@
         // Environment adaptation for previewer
         const appId = typeof __app_id !== 'undefined' ? __app_id : 'scribble-party-v13'; 
 
-        const WORDS = ["CAT","APPLICATION","HOMIOPATHY", "LEAF", "RIVER", "OCEAN", "BEACH", "DESERT", "FOREST", "HAT", "SHIRT", "PANTS", "SHOES", "SOCKS",  "ERASER", "NOTEBOOK", "BAG", "LAMP", "CLOCK", "JACKET", "UMBRELLA", "BACKPACK", "SCARF", "VOLCANO", "ISLAND", "TREE", "HOUSE", "CAR", "SUN","DOCTOR","TEAM MATE","DRONE","SIPPER","KETTLE", "AIRPLANE", "APPLE", "SMILEY FACE", "MOUNTAIN", "BICYCLE", "FLOWER", "CAKE", "BOOK", "FISH", "COFFEE MUG", "PHONE", "GUITAR", "STAR", "CLOUD", "BANANA", "GLASSES", "HEART", "PIZZA", "HAMBURGER","SPOON", "CHAIR", "TABLE", "KEY", "WATCH", "SCISSORS", "ENVELOPE", "PENCIL", "BOTTLE", "MICROSCOPE", "TELESCOPE", "BINOCULARS", "HOURGLASS", "COMPASS", "STOPWATCH", "THERMOMETER", "CALCULATOR", "SATELLITE", "ANTENNA", "ANCHOR", "LIFEBUOY", "SUBMARINE", "PERISCOPE", "TREASURE CHEST", "PIRATE SHIP", "LIGHTHOUSE", "WINDMILL", "WATER TOWER", "BRIDGE", "ROBOT", "ANDROID", "JOYSTICK", "GAME CONTROLLER", "VR HEADSET", "DRONE CAMERA", "SECURITY CAMERA", "TRAFFIC LIGHT", "CCTV CAMERA", "MICROPHONE", "BACKPACK ZIPPER", "BROKEN GLASS", "BANDAGE", "STETHOSCOPE", "FIRST AID KIT", "SYRINGE", "IV STAND", "HOSPITAL BED", "WHEELCHAIR", "CRUTCHES", "CACTUS", "BONSAI TREE", "MUSHROOM", "PINE CONE", "SEASHELL", "CORAL REEF", "JELLYFISH", "STARFISH", "OCTOPUS", "SEAHORSE", "RAINBOW", "TORNADO", "THUNDER CLOUD", "SNOWFLAKE", "ICICLE", "VOLCANIC ERUPTION", "METEOR", "CONSTELLATION", "FULL MOON", "SOLAR ECLIPSE", "CASTLE", "DRAWBRIDGE", "WATCHTOWER", "WIZARD HAT", "MAGIC WAND", "DRAGON EGG", "TREASURE MAP", "ANCIENT SCROLL", "GOLDEN KEY", "CRYSTAL BALL", "ASTRONAUT", "SPACESHIP", "SPACE STATION", "ALIEN", "UFO", "PARACHUTE", "HOT AIR BALLOON", "SKATEBOARD", "ROLLER COASTER", "FERRIS WHEEL", "MAILBOX", "POSTCARD", "PAPER AIRPLANE", "MEGAPHONE", "FLASHLIGHT", "FIRE EXTINGUISHER", "SMOKE ALARM", "PADLOCK", "KEYCHAIN", "TOOLBOX", "CAMERA TRIPOD", "PAINT BRUSH", "CANVAS", "EASEL", "SPRAY CAN", "SCULPTURE", "CLAY POT", "PUPPET", "MASK", "COSTUME", "FOUNTAIN", "STATUE", "CLOCK TOWER", "PARK BENCH", "BIRD FEEDER", "KITE", "WIND SOCK", "WEATHER VANE", "SIGNPOST", "ROAD BARRIER", "FIREPLACE", "CHIMNEY", "DOORBELL", "KEYPAD", "SECURITY ALARM", "WINDOW BLINDS", "CEILING FAN", "WALL CLOCK", "DOORMAT", "MAIL SLOT", "SHOPPING CART", "PRICE TAG", "RECEIPT", "BARCODE", "VENDING MACHINE", "CASH REGISTER", "ATM MACHINE", "ESCALATOR", "ELEVATOR", "TURNSTILE", "CONSTRUCTION HELMET", "TRAFFIC CONE", "JACKHAMMER", "BLUEPRINT", "TOOL BELT", "SAFETY VEST", "CRANE HOOK", "WRECKING BALL", "SCAFFOLDING", "CEMENT MIXER", "FISHING ROD", "TACKLE BOX", "LIFE JACKET", "SURFBOARD", "DIVING MASK", "SNORKEL", "FLIPPERS", "ANCHOR CHAIN", "SHIP WHEEL", "PORT HOLE", "FOLDING CHAIR", "PICNIC TABLE", "BEAN BAG", "ROCKING CHAIR", "BAR STOOL", "CLOTHES HANGER", "LAUNDRY BASKET", "IRONING BOARD", "WASHING MACHINE", "DRYER", "REFRIGERATOR", "FREEZER", "DISHWASHER", "MICROWAVE OVEN", "TOASTER", "BLENDER", "FOOD PROCESSOR", "PRESSURE COOKER", "RICE COOKER", "COFFEE MAKER", "DOOR HANDLE", "LIGHT SWITCH", "POWER SOCKET", "EXTENSION CORD", "CIRCUIT BREAKER", "FUSE BOX", "SOLAR PANEL", "BATTERY PACK", "POWER BANK", "CHARGING CABLE", "FIRE HYDRANT", "STREET LAMP", "ROAD SIGN", "SPEED BREAKER", "PEDESTRIAN CROSSING"];
-        
+        const WORDS = ["Apple", "Ball", "Cat", "Dog", "Egg", "Fish", "Ghost", "Hat", "Ice", "Joker", "Kite", "Lion", "Moon", "Nose", "Owl", "Pizza", "Queen", "Robot", "Sun", "Tree", "Umbrella", "Violin", "Watch", "Xylophone", "Yacht", "Zebra", "Airplane", "Boat", "Car", "Drum", "Ear", "Flower", "Grape", "House", "Igloo", "Jug", "Key", "Lamp", "Mouse", "Net", "Orange", "Pencil", "Quilt", "Rainbow", "Snake", "Train", "Unicorn", "Vase", "Whale", "Box", "Anchor", "Balloon", "Cactus", "Diamond", "Eye", "Feather", "Guitar", "Hammer", "Island", "Jellyfish", "Kangaroo", "Ladder", "Magnet", "Needle", "Octopus", "Parrot", "Rocket", "Spider", "Turtle", "Volcano", "Window", "Yoyo", "Zipper", "Ant", "Bed", "Camera", "Door", "Envelope", "Fire", "Glasses", "Heart", "Iron", "Jeans", "Knife", "Leaf", "Mushroom", "Necklace", "Onion", "Pillow", "Ring", "Scissors", "Tent", "Sock", "Spoon", "Wheel", "Bread", "Cheese", "Duck", "Frog", "Star", "Anchor", "Apron", "Badge", "Bag", "Bamboo", "Bandage", "Barn", "Barrel", "Bead", "Beard", "Beetle", "Bikini", "Biscuit", "Blade", "Blanket", "Blender", "Blimp", "Boots", "Bracelet", "Brain", "Branch", "Bread", "Brick", "Broccoli", "Bubble", "Buffet", "Bullet", "Bumper", "Button", "Cabin", "Cable", "Cage", "Calc", "Cannon", "Canoe", "Cape", "Carrot", "Cart", "Cave", "Cell", "Chain", "Chalk", "Cheek", "Chest", "Chin", "Chip", "Chisel", "Cigar", "Clamp", "Claw", "Cliff", "Cloak", "Clock", "Cloth", "Cloud", "Clover", "Club", "Coach", "Coal", "Coast", "Cockroach", "Coffee", "Coffin", "Collar", "Comet", "Compass", "Computer", "Cone", "Cork", "Corn", "Corner", "Couch", "Crane", "Crate", "Crayon", "Cream", "Creek", "Cricket", "Crow", "Crowbar", "Crust", "Crutch", "Crystal", "Cube", "Cuff", "Cupcake", "Curtain", "Curve", "Cushion", "Cyclops", "Cylinder", "Daisy", "Dart", "Deck", "Deer", "Dentist", "Desert", "Desk", "Dial", "Diaper", "Angel", "Arrow", "Axe", "Banana", "Basket", "Bat", "Bear", "Bee", "Bell", "Belt", "Bench", "Bike", "Bird", "Bone", "Book", "Boot", "Bottle", "Bowl", "Brain", "Brick", "Bridge", "Broom", "Brush", "Bucket", "Bug", "Bulb", "Bunny", "Burger", "Bus", "Cake", "Camel", "Candle", "Candy", "Castle", "Chain", "Chair", "Chalk", "Cherry", "Chess", "Chicken", "Circle", "Clock", "Cloud", "Clown", "Coat", "Coin", "Comb", "Cookie", "Corn", "Cow", "Crab", "Cross", "Crown", "Cup", "Desk", "Dice", "Dinosaur", "Doll", "Dolphin", "Donut", "Dress", "Drill", "Eagle", "Earth", "Fence", "Finger", "Flag", "Fly", "Foot", "Fork", "Fox", "Fries", "Gate", "Gear", "Giraffe", "Glove", "Goat", "Gold", "Grass", "Hair", "Hand", "Helmet", "Hook", "Horn", "Horse", "Hose", "Jar", "Jeep", "Knee", "Knot", "Ladder", "Lemon", "Lock", "Log", "Map", "Mask", "Maze", "Milk", "Mirror", "Monkey", "Mouth", "Mug", "Nail"]
+
         const canvas = document.getElementById('drawing-canvas');
         const ctx = canvas.getContext('2d');
         const playerListEl = document.getElementById('player-list');
@@ -189,7 +203,7 @@
         let currentUser = null;
         let currentRoom = null;
         let currentRole = 'guesser'; 
-        let currentDrawerId = null; // Added to track the current drawer for scoring
+        let currentDrawerId = null; 
         let currentWord = "";
         let isDrawing = false;
         let brushColor = '#000000';
@@ -202,7 +216,8 @@
         let hostTimerInterval = null;
         let correctGuessers = []; 
         let isFlushing = false;
-        let roundDrawingStarted = false; // Local tracking for immediate UI feedback
+        let roundDrawingStarted = false; 
+        let currentHostUid = null; // New variable to track host
 
         // Environment auth adaptation
         const initAuth = async () => {
@@ -247,7 +262,7 @@
                     currentWord: WORDS[Math.floor(Math.random() * WORDS.length)],
                     timer: 60,
                     correctGuessers: [],
-                    drawingStarted: false // Initialize as false
+                    drawingStarted: false 
                 });
             }
 
@@ -265,12 +280,13 @@
                 }
 
                 const data = snap.data();
-                currentDrawerId = data.drawerId; // Update local tracker
+                currentHostUid = data.hostUid; // Store host UID
+                currentDrawerId = data.drawerId; 
                 correctGuessers = data.correctGuessers || [];
                 roundDrawingStarted = data.drawingStarted || false;
 
-                // HOST LOGIC: Run the timer only if drawing has started
-                if (data.hostUid === currentUser.uid) {
+                // HOST LOGIC
+                if (currentHostUid === currentUser.uid) {
                     endRoomBtn.classList.remove('hidden');
                     if (!hostTimerInterval) {
                         hostTimerInterval = setInterval(async () => {
@@ -315,19 +331,49 @@
 
             // Player Listener
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom), (snap) => {
+                // Check if I was kicked
+                const currentPlayers = snap.docs.map(d => d.data());
+                const amIStillInGame = currentPlayers.some(p => p.id === myKey);
+                
+                // Only trigger if we have joined (myKey exists) and we are no longer in the list
+                if (myKey && !amIStillInGame) {
+                    alert("You have been kicked by the host.");
+                    location.reload();
+                    return;
+                }
+
                 playerListEl.innerHTML = '';
                 snap.docs.forEach(doc => {
                     const p = doc.data();
+                    const isHost = currentUser && currentHostUid === currentUser.uid;
+                    const isThisPlayerHost = p.id.includes(currentHostUid); // Check if this player is the host
+                    
                     const item = document.createElement('div');
-                    item.className = "flex justify-between items-center bg-slate-50 p-3 rounded-2xl";
+                    item.className = "flex justify-between items-center bg-slate-50 p-3 rounded-2xl hover:bg-slate-100 transition-colors";
                     item.innerHTML = `
                         <div class="flex items-center gap-2">
-                            ${p.id === (currentRole === 'drawer' ? myPlayerKey : null) ? '<span class="text-xs bg-indigo-100 text-indigo-700 px-1 rounded">Draw</span>' : ''}
                             <span class="font-bold text-slate-700">${p.name}</span>
+                            ${p.id === currentDrawerId ? '<span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">Drawing</span>' : ''}
+                            ${isThisPlayerHost ? '<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Host</span>' : ''}
                         </div>
-                        <span class="font-800 text-indigo-600">${p.score}</span>
+                        <div class="flex items-center gap-3">
+                            <span class="font-800 text-indigo-600">${p.score}</span>
+                            ${isHost && !isThisPlayerHost ? 
+                                `<button class="kick-btn text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg transition-colors" data-player-id="${p.id}">Kick</button>` : 
+                                ''}
+                        </div>
                     `;
                     playerListEl.appendChild(item);
+                });
+
+                // Add event listeners to kick buttons
+                document.querySelectorAll('.kick-btn').forEach(btn => {
+                    btn.addEventListener('click', async (e) => {
+                        const playerId = e.target.getAttribute('data-player-id');
+                        if (confirm('Are you sure you want to kick this player?')) {
+                            await kickPlayer(playerId);
+                        }
+                    });
                 });
             });
 
@@ -374,16 +420,64 @@
             });
         }
 
+        async function kickPlayer(playerId) {
+            try {
+                // Remove player from players collection
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, playerId);
+                await deleteDoc(playerRef);
+                
+                // If kicked player was the drawer, start a new round
+                if (playerId === currentDrawerId) {
+                    await startNewRound(playerId);
+                }
+                
+                // Remove player from correct guessers if they're in there
+                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+                const roomSnap = await getDoc(roomRef);
+                if (roomSnap.exists()) {
+                    const data = roomSnap.data();
+                    if (data.correctGuessers && data.correctGuessers.includes(playerId)) {
+                         const updatedGuessers = data.correctGuessers.filter(id => id !== playerId);
+                        await updateDoc(roomRef, { correctGuessers: updatedGuessers });
+                    }
+                }
+                
+                // Send system message
+                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), { 
+                    type: 'system', 
+                    text: "A player has been kicked from the game.", 
+                    time: Date.now() 
+                });
+                
+            } catch (error) {
+                console.error('Error kicking player:', error);
+                alert('Failed to kick player. Please try again.');
+            }
+        }
+
         async function startNewRound(currentDrawerId) {
             // ROTATION LOGIC
             const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom);
             const playersSnap = await getDocs(playersCol);
             const players = playersSnap.docs.map(d => d.data().id).sort();
 
+            // If no players left, end the game
+            if (players.length === 0) {
+                if (endRoomBtn) endRoomBtn.click();
+                return;
+            }
+
             let nextDrawerId = currentDrawerId;
             if (players.length > 0) {
                 const currentIndex = players.indexOf(currentDrawerId);
-                const nextIndex = (currentIndex + 1) % players.length;
+                let nextIndex;
+                
+                if (currentIndex === -1) {
+                    // If current drawer was removed (kicked), start with first player
+                    nextIndex = 0;
+                } else {
+                    nextIndex = (currentIndex + 1) % players.length;
+                }
                 nextDrawerId = players[nextIndex];
             }
 
@@ -521,6 +615,7 @@
                 await startNewRound(myPlayerKey);
             }
         };
+
         // ---------------------------
 
         chatForm.onsubmit = async (e) => {
