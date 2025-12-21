@@ -74,6 +74,22 @@
         </div>
     </div>
 
+    <!-- Reconnection Modal -->
+    <div id="reconnect-modal" class="fixed inset-0 bg-black/70 z-[200] hidden items-center justify-center p-6">
+        <div class="bg-white p-8 rounded-3xl shadow-2xl w-full max-w-md text-center">
+            <h2 class="text-2xl font-bold text-indigo-600 mb-4">Reconnect to Game</h2>
+            <p class="text-slate-600 mb-6">It looks like you were disconnected from the game. Would you like to reconnect?</p>
+            <div class="space-y-3">
+                <button id="reconnect-btn" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white p-4 rounded-2xl font-bold text-lg transition-all shadow-lg active:scale-95">
+                    Reconnect
+                </button>
+                <button id="new-game-btn" class="w-full bg-gray-100 hover:bg-gray-200 text-gray-800 p-4 rounded-2xl font-bold text-lg transition-all active:scale-95">
+                    Start New Game
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Main Game UI -->
     <div id="game-ui" class="w-full max-w-6xl hidden">
         <header class="flex flex-wrap justify-between items-center mb-6 gap-4">
@@ -168,7 +184,7 @@
 
         // Environment adaptation for previewer
         const firebaseConfig = typeof __firebase_config !== 'undefined' ? JSON.parse(__firebase_config) : {
-            apiKey: "AIzaSyC5TLdMQQSekJ1dg5RYAm0cH0B3iOlyHC8",
+            apiKey: "AIzaSyDLfz0fUXanGv-pzpB5h-_QPMqZ4RBLaYI",
             authDomain: "scribble-82ffd.firebaseapp.com",
             projectId: "scribble-82ffd",
             storageBucket: "scribble-82ffd.firebasestorage.app",
@@ -182,7 +198,7 @@
         const auth = getAuth(app);
         
         // Environment adaptation for previewer
-        const appId = typeof __app_id !== 'undefined' ? __app_id : 'scribble-party-v13'; 
+        const appId = typeof __app_id !== 'undefined' ? __app_id : 'scribble-party-v14'; 
 
         const WORDS = ["Apple", "Ball", "Cat", "Dog", "Egg", "Fish", "Ghost", "Hat", "Ice", "Joker", "Kite", "Lion", "Moon", "Nose", "Owl", "Pizza", "Queen", "Robot", "Sun", "Tree", "Umbrella", "Violin", "Watch", "Xylophone", "Yacht", "Zebra", "Airplane", "Boat", "Car", "Drum", "Ear", "Flower", "Grape", "House", "Igloo", "Jug", "Key", "Lamp", "Mouse", "Net", "Orange", "Pencil", "Quilt", "Rainbow", "Snake", "Train", "Unicorn", "Vase", "Whale", "Box", "Anchor", "Balloon", "Cactus", "Diamond", "Eye", "Feather", "Guitar", "Hammer", "Island", "Jellyfish", "Kangaroo", "Ladder", "Magnet", "Needle", "Octopus", "Parrot", "Rocket", "Spider", "Turtle", "Volcano", "Window", "Yoyo", "Zipper", "Ant", "Bed", "Camera", "Door", "Envelope", "Fire", "Glasses", "Heart", "Iron", "Jeans", "Knife", "Leaf", "Mushroom", "Necklace", "Onion", "Pillow", "Ring", "Scissors", "Tent", "Sock", "Spoon", "Wheel", "Bread", "Cheese", "Duck", "Frog", "Star", "Anchor", "Apron", "Badge", "Bag", "Bamboo", "Bandage", "Barn", "Barrel", "Bead", "Beard", "Beetle", "Bikini", "Biscuit", "Blade", "Blanket", "Blender", "Blimp", "Boots", "Bracelet", "Brain", "Branch", "Bread", "Brick", "Broccoli", "Bubble", "Buffet", "Bullet", "Bumper", "Button", "Cabin", "Cable", "Cage", "Calc", "Cannon", "Canoe", "Cape", "Carrot", "Cart", "Cave", "Cell", "Chain", "Chalk", "Cheek", "Chest", "Chin", "Chip", "Chisel", "Cigar", "Clamp", "Claw", "Cliff", "Cloak", "Clock", "Cloth", "Cloud", "Clover", "Club", "Coach", "Coal", "Coast", "Cockroach", "Coffee", "Coffin", "Collar", "Comet", "Compass", "Computer", "Cone", "Cork", "Corn", "Corner", "Couch", "Crane", "Crate", "Crayon", "Cream", "Creek", "Cricket", "Crow", "Crowbar", "Crust", "Crutch", "Crystal", "Cube", "Cuff", "Cupcake", "Curtain", "Curve", "Cushion", "Cyclops", "Cylinder", "Daisy", "Dart", "Deck", "Deer", "Dentist", "Desert", "Desk", "Dial", "Diaper", "Angel", "Arrow", "Axe", "Banana", "Basket", "Bat", "Bear", "Bee", "Bell", "Belt", "Bench", "Bike", "Bird", "Bone", "Book", "Boot", "Bottle", "Bowl", "Brain", "Brick", "Bridge", "Broom", "Brush", "Bucket", "Bug", "Bulb", "Bunny", "Burger", "Bus", "Cake", "Camel", "Candle", "Candy", "Castle", "Chain", "Chair", "Chalk", "Cherry", "Chess", "Chicken", "Circle", "Clock", "Cloud", "Clown", "Coat", "Coin", "Comb", "Cookie", "Corn", "Cow", "Crab", "Cross", "Crown", "Cup", "Desk", "Dice", "Dinosaur", "Doll", "Dolphin", "Donut", "Dress", "Drill", "Eagle", "Earth", "Fence", "Finger", "Flag", "Fly", "Foot", "Fork", "Fox", "Fries", "Gate", "Gear", "Giraffe", "Glove", "Goat", "Gold", "Grass", "Hair", "Hand", "Helmet", "Hook", "Horn", "Horse", "Hose", "Jar", "Jeep", "Knee", "Knot", "Ladder", "Lemon", "Lock", "Log", "Map", "Mask", "Maze", "Milk", "Mirror", "Monkey", "Mouth", "Mug", "Nail"]
 
@@ -193,6 +209,7 @@
         const chatForm = document.getElementById('chat-form');
         const chatInput = document.getElementById('chat-input');
         const joinOverlay = document.getElementById('join-overlay');
+        const reconnectModal = document.getElementById('reconnect-modal');
         const gameUI = document.getElementById('game-ui');
         const timerDisplay = document.getElementById('timer-display');
         const targetContainer = document.getElementById('target-container');
@@ -217,7 +234,13 @@
         let correctGuessers = []; 
         let isFlushing = false;
         let roundDrawingStarted = false; 
-        let currentHostUid = null; // New variable to track host
+        let currentHostUid = null;
+
+        // Presence variables
+        let presenceInterval = null;
+        let lastActiveUpdate = 0;
+        const ACTIVITY_THRESHOLD = 5000; // 5 seconds
+        const INACTIVE_THRESHOLD = 30000; // 30 seconds for host to clean up
 
         // Environment auth adaptation
         const initAuth = async () => {
@@ -231,7 +254,27 @@
 
         onAuthStateChanged(auth, (user) => {
             currentUser = user;
-            if (user) document.getElementById('auth-status').textContent = "Ready!";
+            if (user) {
+                document.getElementById('auth-status').textContent = "Ready!";
+                
+                // Reconnection check
+                const lastRoom = localStorage.getItem('scribble_last_room');
+                const lastPlayerName = localStorage.getItem('scribble_player_name');
+                if (lastRoom && lastPlayerName && !currentRoom) {
+                    reconnectModal.classList.remove('hidden');
+                    reconnectModal.classList.add('flex');
+                    document.getElementById('reconnect-btn').onclick = () => {
+                         document.getElementById('player-name').value = lastPlayerName;
+                         document.getElementById('room-id').value = lastRoom;
+                         document.getElementById('join-btn').click();
+                         reconnectModal.classList.add('hidden');
+                    };
+                    document.getElementById('new-game-btn').onclick = () => {
+                        localStorage.removeItem('scribble_last_room');
+                        reconnectModal.classList.add('hidden');
+                    };
+                }
+            }
         });
 
         document.getElementById('join-btn').onclick = async () => {
@@ -240,18 +283,46 @@
             const room = document.getElementById('room-id').value.trim().toUpperCase();
             if (!name || !room) return;
 
+            // Save for reconnection
+            localStorage.setItem('scribble_last_room', room);
+            localStorage.setItem('scribble_player_name', name);
+
             currentRoom = room;
             joinOverlay.classList.add('hidden');
             gameUI.classList.remove('hidden');
             document.getElementById('room-display').textContent = `Room: ${room}`;
 
-            const uniqueSessionId = Date.now().toString(36) + Math.random().toString(36).substring(2);
-            myPlayerKey = `${currentUser.uid}_${uniqueSessionId}`;
+            // Consistent Player Key (Fix for duplicate players on reload)
+            myPlayerKey = `${currentUser.uid}_${room}`;
 
-            await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'players_' + room, myPlayerKey), {
-                name, score: 0, id: myPlayerKey
-            });
+            const existingPlayerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + room, myPlayerKey);
+            const existingPlayerSnap = await getDoc(existingPlayerRef);
 
+            if (existingPlayerSnap.exists()) {
+                // Player reconnecting - update status
+                await updateDoc(existingPlayerRef, {
+                    name: name,
+                    lastActive: Date.now(),
+                    online: true
+                });
+                // Ensure score field exists
+                if (existingPlayerSnap.data().score === undefined) {
+                    await updateDoc(existingPlayerRef, { score: 0 });
+                }
+            } else {
+                // New player
+                await setDoc(existingPlayerRef, {
+                    name,
+                    score: 0,
+                    id: myPlayerKey,
+                    uid: currentUser.uid,
+                    lastActive: Date.now(),
+                    online: true,
+                    room: room
+                });
+            }
+
+            // Room Setup
             const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', room);
             const roomSnap = await getDoc(roomRef);
             
@@ -267,8 +338,99 @@
             }
 
             listenToRoom(myPlayerKey);
+            startPresenceUpdates(); // Start heartbeat
             resizeCanvas();
         };
+
+        // --- PRESENCE & CLEANUP LOGIC ---
+
+        async function updatePlayerActivity() {
+            if (!currentRoom || !myPlayerKey) return;
+            
+            const now = Date.now();
+            if (now - lastActiveUpdate > ACTIVITY_THRESHOLD) {
+                const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, myPlayerKey);
+                try {
+                    await updateDoc(playerRef, {
+                        lastActive: Date.now(),
+                        online: true
+                    });
+                    lastActiveUpdate = now;
+                } catch (e) {
+                    // Player might be kicked/deleted
+                }
+            }
+        }
+
+        async function markPlayerOffline() {
+            if (!currentRoom || !myPlayerKey) return;
+            const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, myPlayerKey);
+            try {
+                await updateDoc(playerRef, {
+                    online: false,
+                    lastActive: Date.now()
+                });
+            } catch (e) {
+                console.log("Could not mark player offline");
+            }
+        }
+
+        function startPresenceUpdates() {
+            if (presenceInterval) clearInterval(presenceInterval);
+            presenceInterval = setInterval(updatePlayerActivity, 10000); // Heartbeat every 10s
+            
+            // Interaction listeners
+            ['mousedown', 'mousemove', 'keydown', 'touchstart'].forEach(event => {
+                document.addEventListener(event, updatePlayerActivity, { passive: true });
+            });
+        }
+
+        async function cleanupInactivePlayers() {
+            // Only host cleans up
+            if (currentUser.uid !== currentHostUid) return;
+            
+            const playersCol = collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom);
+            const playersSnap = await getDocs(playersCol);
+            const now = Date.now();
+            
+            playersSnap.docs.forEach(async (playerDoc) => {
+                const playerData = playerDoc.data();
+                const lastActive = playerData.lastActive || 0;
+                
+                // Remove if offline AND inactive for > 30s
+                if ((now - lastActive > INACTIVE_THRESHOLD) && !playerData.online) {
+                    const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, playerData.id);
+                    // Double check current status
+                    const currentSnap = await getDoc(playerRef);
+                    const currentData = currentSnap.exists() ? currentSnap.data() : null;
+                    
+                    if (currentData && !currentData.online) {
+                         // Archive kicked/removed players logic can go here if needed, but for inactivity we just remove
+                        await deleteDoc(playerRef);
+                        
+                        // If drawer was removed, rotate
+                        if (playerData.id === currentDrawerId) {
+                            await startNewRound(playerData.id);
+                        }
+                        
+                        await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), {
+                            type: 'system',
+                            text: `${playerData.name} removed due to inactivity.`,
+                            time: Date.now()
+                        });
+                    }
+                }
+            });
+        }
+
+        // Window event listeners for offline status
+        window.addEventListener('beforeunload', async (e) => { await markPlayerOffline(); });
+        window.addEventListener('pagehide', async () => { await markPlayerOffline(); });
+        document.addEventListener('visibilitychange', async () => {
+            if (document.hidden) await markPlayerOffline();
+            else await updatePlayerActivity();
+        });
+
 
         function listenToRoom(myKey) {
             // Room Listener
@@ -288,6 +450,11 @@
                 // HOST LOGIC
                 if (currentHostUid === currentUser.uid) {
                     endRoomBtn.classList.remove('hidden');
+                    // Start cleanup interval if not started
+                    if (!window.cleanupInterval) {
+                        window.cleanupInterval = setInterval(cleanupInactivePlayers, 15000); // Run cleanup every 15s
+                    }
+
                     if (!hostTimerInterval) {
                         hostTimerInterval = setInterval(async () => {
                             const currentSnap = await getDoc(doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom));
@@ -331,12 +498,13 @@
 
             // Player Listener
             onSnapshot(collection(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom), (snap) => {
-                // Check if I was kicked
                 const currentPlayers = snap.docs.map(d => d.data());
-                const amIStillInGame = currentPlayers.some(p => p.id === myKey);
                 
-                // Only trigger if we have joined (myKey exists) and we are no longer in the list
+                // If I'm not in the list, I was kicked or removed
+                const amIStillInGame = currentPlayers.some(p => p.id === myKey);
                 if (myKey && !amIStillInGame) {
+                    // Clear local storage so we don't auto-reconnect to a game we were kicked from
+                    localStorage.removeItem('scribble_last_room');
                     alert("You have been kicked by the host.");
                     location.reload();
                     return;
@@ -346,18 +514,23 @@
                 snap.docs.forEach(doc => {
                     const p = doc.data();
                     const isHost = currentUser && currentHostUid === currentUser.uid;
-                    const isThisPlayerHost = p.id.includes(currentHostUid); // Check if this player is the host
-                    
+                    const isThisPlayerHost = p.id.includes(currentHostUid); 
+                    const isOnline = p.online !== false;
+                    const isMe = p.id === myPlayerKey;
+
                     const item = document.createElement('div');
-                    item.className = "flex justify-between items-center bg-slate-50 p-3 rounded-2xl hover:bg-slate-100 transition-colors";
+                    // Dim offline players
+                    item.className = `flex justify-between items-center p-3 rounded-2xl transition-all ${isOnline ? 'bg-slate-50' : 'bg-gray-100 opacity-60'}`;
+                    
                     item.innerHTML = `
                         <div class="flex items-center gap-2">
-                            <span class="font-bold text-slate-700">${p.name}</span>
+                            <div class="w-2 h-2 rounded-full ${isOnline ? 'bg-green-500' : 'bg-gray-400'}" title="${isOnline ? 'Online' : 'Offline'}"></div>
+                            <span class="font-bold ${isOnline ? 'text-slate-700' : 'text-gray-500'}">${p.name} ${isMe ? '' : ''}</span>
                             ${p.id === currentDrawerId ? '<span class="text-xs bg-indigo-100 text-indigo-700 px-2 py-0.5 rounded">Drawing</span>' : ''}
                             ${isThisPlayerHost ? '<span class="text-xs bg-yellow-100 text-yellow-700 px-2 py-0.5 rounded">Host</span>' : ''}
                         </div>
                         <div class="flex items-center gap-3">
-                            <span class="font-800 text-indigo-600">${p.score}</span>
+                            <span class="font-800 ${isOnline ? 'text-indigo-600' : 'text-gray-400'}">${p.score || 0}</span>
                             ${isHost && !isThisPlayerHost ? 
                                 `<button class="kick-btn text-xs bg-red-500 hover:bg-red-600 text-white px-2 py-1 rounded-lg transition-colors" data-player-id="${p.id}">Kick</button>` : 
                                 ''}
@@ -366,7 +539,6 @@
                     playerListEl.appendChild(item);
                 });
 
-                // Add event listeners to kick buttons
                 document.querySelectorAll('.kick-btn').forEach(btn => {
                     btn.addEventListener('click', async (e) => {
                         const playerId = e.target.getAttribute('data-player-id');
@@ -422,33 +594,44 @@
 
         async function kickPlayer(playerId) {
             try {
-                // Remove player from players collection
                 const playerRef = doc(db, 'artifacts', appId, 'public', 'data', 'players_' + currentRoom, playerId);
-                await deleteDoc(playerRef);
+                const playerSnap = await getDoc(playerRef);
                 
-                // If kicked player was the drawer, start a new round
-                if (playerId === currentDrawerId) {
-                    await startNewRound(playerId);
-                }
-                
-                // Remove player from correct guessers if they're in there
-                const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
-                const roomSnap = await getDoc(roomRef);
-                if (roomSnap.exists()) {
-                    const data = roomSnap.data();
-                    if (data.correctGuessers && data.correctGuessers.includes(playerId)) {
-                         const updatedGuessers = data.correctGuessers.filter(id => id !== playerId);
-                        await updateDoc(roomRef, { correctGuessers: updatedGuessers });
+                if (playerSnap.exists()) {
+                    const playerData = playerSnap.data();
+                    
+                    // Archive (Optional - simple deletion is often enough, but user requested logging)
+                    await setDoc(doc(db, 'artifacts', appId, 'public', 'data', 'kickedPlayers_' + currentRoom, playerId), {
+                        ...playerData,
+                        kickedAt: Date.now(),
+                        kickedBy: currentUser.uid
+                    });
+
+                    // Delete active record
+                    await deleteDoc(playerRef);
+                    
+                    // If kicked player was the drawer, start a new round
+                    if (playerId === currentDrawerId) {
+                        await startNewRound(playerId);
                     }
+                    
+                    // Remove player from correct guessers
+                    const roomRef = doc(db, 'artifacts', appId, 'public', 'data', 'rooms', currentRoom);
+                    const roomSnap = await getDoc(roomRef);
+                    if (roomSnap.exists()) {
+                        const data = roomSnap.data();
+                        if (data.correctGuessers && data.correctGuessers.includes(playerId)) {
+                             const updatedGuessers = data.correctGuessers.filter(id => id !== playerId);
+                            await updateDoc(roomRef, { correctGuessers: updatedGuessers });
+                        }
+                    }
+                    
+                    await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), { 
+                        type: 'system', 
+                        text: `${playerData.name} has been kicked from the game.`, 
+                        time: Date.now() 
+                    });
                 }
-                
-                // Send system message
-                await addDoc(collection(db, 'artifacts', appId, 'public', 'data', 'messages_' + currentRoom), { 
-                    type: 'system', 
-                    text: "A player has been kicked from the game.", 
-                    time: Date.now() 
-                });
-                
             } catch (error) {
                 console.error('Error kicking player:', error);
                 alert('Failed to kick player. Please try again.');
@@ -473,7 +656,6 @@
                 let nextIndex;
                 
                 if (currentIndex === -1) {
-                    // If current drawer was removed (kicked), start with first player
                     nextIndex = 0;
                 } else {
                     nextIndex = (currentIndex + 1) % players.length;
@@ -487,7 +669,7 @@
                 currentWord: WORDS[Math.floor(Math.random() * WORDS.length)],
                 timer: 60,
                 correctGuessers: [],
-                drawingStarted: false // Reset for new round
+                drawingStarted: false 
             });
 
             const batch = writeBatch(db);
